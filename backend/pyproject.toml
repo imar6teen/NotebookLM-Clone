@@ -1,0 +1,50 @@
+[project]
+name = "notebooklm-clone"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "imar6teen", email = "aimaranand02@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "datasets>=5.0.1",
+    "docling>=2.130.0",
+    "faiss-cpu>=1.15.1",
+    "fastapi[standard]>=0.141.1",
+    "ipykernel>=7.3.0",
+    "langchain>=1.4.2",
+    "langchain-docling>=3.0.0",
+    "langchain-ollama>=1.1.0",
+    "langchain-text-splitters>=1.1.2",
+    "langgraph>=1.2.12",
+    "networkx>=3.6.1",
+    "pydantic>=2.13.5",
+    "scikit-learn>=1.9.1",
+    "sentence-transformers>=6.1.0",
+    "torch>=2.14.0",
+    "torchaudio>=2.11.0",
+    "torchvision>=0.29.0",
+    "transformers>=5.17.0",
+    "uuid>=1.30",
+]
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[project.scripts]
+notebooklm-clone = "notebooklm_clone:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
