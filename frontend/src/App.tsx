@@ -1,122 +1,65 @@
-import { useState } from "react";
-import heroImg from "./assets/hero.png";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "./assets/vite.svg";
-import "./App.css";
+import { useState, useEffect } from "react";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import UploadPage from "./pages/UploadPage";
+import ChatPage from "./pages/ChatPage";
+import { resetWorkspace, getIndexingStatus, getDocuments } from "./api";
 
-function App() {
-  const [count, setCount] = useState(0);
+export default function App() {
+  const [view, setView] = useState<"upload" | "chat">("upload");
+  const [activeFileName, setActiveFileName] = useState<string>("");
+
+  useEffect(() => {
+    async function checkExisting() {
+      try {
+        const status = await getIndexingStatus();
+        if (status.stage === "complete" && status.chunk_count > 0) {
+          const docs = await getDocuments();
+          const name = docs.length > 0 ? docs[0].name : "Indexed Documents";
+          setActiveFileName(name);
+          setView("chat");
+        }
+      } catch (err) {
+        // Backend not ready yet or network idle
+      }
+    }
+    checkExisting();
+  }, []);
+
+  function handleFileUploaded(name: string) {
+    setActiveFileName(name);
+    setView("chat");
+  }
+
+  async function handleNewChat() {
+    try {
+      await resetWorkspace();
+    } catch (e) {
+      console.error(e);
+    }
+    setView("upload");
+    setActiveFileName("");
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="min-h-screen w-full flex flex-col bg-background text-on-surface antialiased selection:bg-primary/30 selection:text-on-surface">
+      <Header onNewChat={handleNewChat} />
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <div className="pt-16 flex-1 flex flex-col">
+        {view === "upload" ? (
+          <>
+            <main className="flex-1 flex items-center justify-center">
+              <UploadPage onFileUploaded={handleFileUploaded} />
+            </main>
+            <Footer />
+          </>
+        ) : (
+          <ChatPage
+            onNewUpload={handleNewChat}
+            initialFileName={activeFileName}
+          />
+        )}
+      </div>
+    </div>
   );
 }
-
-export default App;
